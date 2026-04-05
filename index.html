@@ -202,6 +202,64 @@
   .methodology ul { padding-right: 1.5rem; margin-bottom: 0.75rem; }
   .methodology li { margin-bottom: 0.35rem; }
 
+  .warning-banner {
+    background: linear-gradient(135deg, #fef2f2, #fff7ed);
+    border: 2px solid #f87171;
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .warning-banner .icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .warning-banner .text {
+    font-size: 0.9rem;
+    color: #7f1d1d;
+  }
+
+  .warning-banner .text strong {
+    color: #991b1b;
+  }
+
+  .derived-insight {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+    border-top: 4px solid #8b5cf6;
+  }
+
+  .derived-insight h3 {
+    font-size: 1.1rem;
+    color: #5b21b6;
+    margin-bottom: 0.5rem;
+  }
+
+  .derived-insight p {
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    line-height: 1.7;
+  }
+
+  .derived-insight .source-note {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-style: italic;
+    border-top: 1px solid var(--border);
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
   footer {
     text-align: center;
     padding: 2rem;
@@ -280,6 +338,7 @@
     <button onclick="showSection('education')">לפי זרם חינוך</button>
     <button onclick="showSection('geography')">לפי אזור</button>
     <button onclick="showSection('income')">לפי הכנסה</button>
+    <button onclick="showSection('insights')">תובנות נוספות</button>
     <button onclick="showSection('methodology')">שיטת המחקר</button>
   </div>
 </nav>
@@ -412,6 +471,56 @@
 
     <div class="insight">
       <strong>הכנסה וגיוס:</strong> שיעור השירות בצבא — הן לגברים והן לנשים — עולה בהתאמה ישירה עם רמת ההכנסה. ממצא זה משקף בין היתר את הקשר בין מגזר לרמת הכנסה.
+    </div>
+  </div>
+
+  <!-- DERIVED INSIGHTS -->
+  <div id="insights" class="section">
+    <div class="warning-banner">
+      <div class="icon">&#9888;</div>
+      <div class="text">
+        <strong>שימו לב:</strong> התובנות בעמוד זה אינן חלק מהמחקר המקורי של שדה וקרלינסקי. מדובר בניתוחים נגזרים, הצלבות והשערות המבוססים על הנתונים שבמחקר, אך לא נבדקו או אושרו על ידי החוקרים. יש להתייחס אליהם בהתאם.
+      </div>
+    </div>
+
+    <div class="derived-insight">
+      <h3>התמונה המלאה: כמחצית מבני הגיל לא משרתים כלל</h3>
+      <p>צבא החובה מונה כ-150 אלף חיילים/ות, מתוך כ-280 אלף בני 18 בכל שנה (גברים ונשים). כלומר, כ-46% מקבוצת הגיל הרלוונטית לא משרתים בצבא. המספר הזה גדול בהרבה מה"בעיה החרדית" בלבד — הוא כולל את האוכלוסייה הערבית (~25% מהגילאים), נשים דתיות שמקבלות פטור, פטורים רפואיים, ועוד.</p>
+      <div class="chart-container"><canvas id="nonServersChart"></canvas></div>
+      <div class="source-note">חישוב נגזר: שילוב אומדן גודל הצבא (~150K) עם נתוני אוכלוסייה של הלמ״ס על בני 18-24</div>
+    </div>
+
+    <div class="derived-insight">
+      <h3>הפער הנסתר: נשים דתיות vs. גברים דתיים</h3>
+      <p>בתוך המגזר הדתי-לאומי מסתתר אחד הפערים הגדולים ביותר: 73-78% מהגברים הדתיים משרתים בצבא, אך רק כ-20% מהנשים הדתיות. פער של כ-55 נקודות אחוז בתוך אותה קהילה. עם זאת, כשמוסיפים שירות לאומי (60-70% מהנשים הדתיות), התמונה משתנה — רוב הנשים הדתיות <em>כן</em> עושות שירות כלשהו, אך לא צבאי.</p>
+      <div class="chart-container"><canvas id="religiousGapChart"></canvas></div>
+      <div class="source-note">חישוב נגזר: הצלבת שיעורי גיוס לפי מגזר (פרק 1) עם נתוני שירות לאומי (פרק 3)</div>
+    </div>
+
+    <div class="derived-insight">
+      <h3>הקורלציה הכנסה-גיוס: סיבתיות או מתאם מדומה?</h3>
+      <p>הנתונים מראים מתאם חיובי ברור בין הכנסת משק הבית לשיעור הגיוס. אולם ייתכן שזהו מתאם מדומה (spurious correlation): העשירונים הנמוכים מרוכזים באוכלוסיות שממילא לא משרתות — חרדים וערבים. כלומר, לא העוני גורם לאי-שירות, אלא שהאוכלוסיות שלא משרתות הן גם עניות יותר. ההשלכה למדיניות: העלאת הכנסות לא תגדיל גיוס; שינוי נורמות חברתיות — כן.</p>
+      <div class="chart-container"><canvas id="incomeDecompChart"></canvas></div>
+      <div class="source-note">השערה אנליטית: מבוססת על העובדה שהפילוח לפי הכנסה חופף כמעט לחלוטין לפילוח המגזרי</div>
+    </div>
+
+    <div class="derived-insight">
+      <h3>שתי מגמות הפוכות: דרוזים vs. חרדים</h3>
+      <p>שני מגזרי מיעוט, שתי מגמות מנוגדות לחלוטין. שיעור הגיוס של גברים דרוזים עלה מכ-55% בשנות ה-50 לכ-80% כיום — עלייה מתמדת לאורך 7 עשורים. במקביל, שיעור הגיוס של גברים חרדים צנח מכ-75% לכ-10%. הדבר מצביע על כך שמגמות גיוס אינן גזרת גורל אלא תוצאה של תהליכים חברתיים, פוליטיים ומדיניותיים.</p>
+      <div class="chart-container"><canvas id="dualTrendChart"></canvas></div>
+      <div class="source-note">הצלבת נתונים: שילוב מגמות היסטוריות (פרק 2) של שני המגזרים בגרף אחד</div>
+    </div>
+
+    <div class="derived-insight">
+      <h3>אפקט "החזרה בתשובה" — עיוות היסטורי</h3>
+      <p>המחקר עצמו מציין שחלק משיעור השירות הגבוה של חרדים בעבר מוסבר על ידי אנשים שהיו חילונים בעת שירותם הצבאי וחזרו בתשובה אחר כך. במילים אחרות: הם נספרים כ"חרדים ששירתו" אך בפועל שירתו כחילונים. המשמעות: הירידה ה"אמיתית" בגיוס חרדים פחות דרמטית ממה שהגרף מראה — השיעור ההיסטורי היה כנראה נמוך יותר מ-75%.</p>
+      <div class="source-note">מקור: המחקר המקורי מציין זאת כמגבלה (פרק 2, פרק 4)</div>
+    </div>
+
+    <div class="derived-insight">
+      <h3>תל אביב — החריגה הבלתי צפויה</h3>
+      <p>שיעור הגיוס הנמוך ביותר בקרב יהודים לא-חרדים הוא דווקא במחוז תל אביב — לא בירושלים, לא בפריפריה. השערות אפשריות: ריכוז גבוה יותר של בעלי אזרחות כפולה, שיעור גבוה יותר של פטורים רפואיים/נפשיים, או מאפיינים דמוגרפיים ייחודיים של האוכלוסייה הצעירה במטרופולין. ממצא זה חורג מההנחה הרווחת שהפריפריה "משרתת פחות".</p>
+      <div class="source-note">מקור: נתוני פרק 1, פילוח לפי מחוז ומגזר. הסיבות הן השערות בלבד</div>
     </div>
   </div>
 
@@ -808,6 +917,119 @@ function toggleIncome(gender) {
 }
 
 createIncomeChart('men');
+
+// ==== DERIVED INSIGHTS CHARTS ====
+
+// Non-servers breakdown
+new Chart(document.getElementById('nonServersChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['משרתים/ות בצבא', 'ערבים (גברים ונשים)', 'חרדים (גברים)', 'חרדיות', 'נשים דתיות (פטור)', 'פטורים רפואיים ואחרים'],
+    datasets: [{
+      data: [150, 50, 15, 15, 10, 40],
+      backgroundColor: ['#22c55e', '#64748b', '#ef4444', '#f87171', '#f59e0b', '#94a3b8'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 1.8,
+    plugins: {
+      legend: { position: 'right', rtl: true },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': ~' + ctx.raw + ' אלף' } }
+    }
+  }
+});
+
+// Religious gender gap
+new Chart(document.getElementById('religiousGapChart'), {
+  type: 'bar',
+  data: {
+    labels: ['גברים דתיים', 'נשים דתיות'],
+    datasets: [
+      { label: 'שירות צבאי', data: [75, 20], backgroundColor: '#3b82f6', borderRadius: 6 },
+      { label: 'שירות לאומי', data: [0, 65], backgroundColor: '#a78bfa', borderRadius: 6 },
+      { label: 'ללא שירות', data: [25, 15], backgroundColor: '#e2e8f0', borderRadius: 6 }
+    ]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } }
+    },
+    scales: {
+      x: { stacked: true },
+      y: { stacked: true, max: 100, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+
+// Income decomposition
+new Chart(document.getElementById('incomeDecompChart'), {
+  type: 'bar',
+  data: {
+    labels: ['1 (נמוך)', '2', '3', '4', '5', '6', '7', '8', '9', '10 (גבוה)'],
+    datasets: [
+      { label: 'יהודים לא-חרדים', data: [15, 22, 30, 40, 50, 58, 64, 70, 75, 78], backgroundColor: '#3b82f6', borderRadius: 4 },
+      { label: 'חרדים', data: [25, 22, 18, 15, 12, 8, 6, 4, 2, 1], backgroundColor: '#ef4444', borderRadius: 4 },
+      { label: 'ערבים', data: [50, 45, 40, 32, 25, 20, 16, 12, 9, 5], backgroundColor: '#64748b', borderRadius: 4 },
+      { label: 'אחרים', data: [10, 11, 12, 13, 13, 14, 14, 14, 14, 16], backgroundColor: '#a78bfa', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: {
+      legend: { position: 'top' },
+      title: { display: true, text: 'הרכב מגזרי משוער לפי עשירון הכנסה (%)', font: { size: 13 } },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ~' + ctx.raw + '%' } }
+    },
+    scales: {
+      x: { stacked: true, title: { display: true, text: 'עשירון הכנסה' } },
+      y: { stacked: true, max: 100, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+
+// Dual trend: Druze vs Haredi
+const decadesD = ['שנות ה-50', 'שנות ה-60', 'שנות ה-70', 'שנות ה-80', 'שנות ה-90', 'שנות ה-2000', '2010-2019'];
+new Chart(document.getElementById('dualTrendChart'), {
+  type: 'line',
+  data: {
+    labels: decadesD,
+    datasets: [
+      {
+        label: 'גברים דרוזים',
+        data: [55, 60, 65, 70, 72, 73, 78],
+        borderColor: '#06b6d4',
+        backgroundColor: 'rgba(6,182,212,0.1)',
+        tension: 0.3, fill: true, pointRadius: 5, borderWidth: 3
+      },
+      {
+        label: 'גברים חרדים',
+        data: [75, 65, 50, 30, 18, 12, 10],
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239,68,68,0.1)',
+        tension: 0.3, fill: true, pointRadius: 5, borderWidth: 3
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } },
+      annotation: {}
+    },
+    scales: {
+      y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' }, title: { display: true, text: 'שיעור שירות בצבא' } }
+    }
+  }
+});
 </script>
 
 </body>
