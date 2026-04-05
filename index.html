@@ -171,8 +171,48 @@
 
   @media (max-width: 768px) {
     .grid-2 { grid-template-columns: 1fr; }
-    .hero h1 { font-size: 1.8rem; }
-    .key-stats { grid-template-columns: repeat(2, 1fr); }
+    .hero { padding: 2rem 1rem 1.5rem; }
+    .hero h1 { font-size: 1.6rem; }
+    .hero .subtitle { font-size: 0.95rem; }
+    .hero .meta { font-size: 0.75rem; }
+    .key-stats {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      padding: 0 0.75rem;
+      margin-top: -1.5rem;
+    }
+    .stat-card { padding: 0.75rem 0.5rem; }
+    .stat-card .number { font-size: 1.4rem; }
+    .stat-card .label { font-size: 0.7rem; }
+    nav .tabs { padding: 0 0.25rem; }
+    nav button { padding: 0.7rem 0.75rem; font-size: 0.8rem; }
+    .container { padding: 1rem 0.75rem; }
+    .card { padding: 1rem; border-radius: 8px; }
+    .card h2 { font-size: 1.1rem; }
+    .card h3 { font-size: 1rem; }
+    .card p { font-size: 0.82rem; }
+    .chart-container { max-height: 300px; }
+    .insight { padding: 0.75rem 1rem; font-size: 0.82rem; }
+    .derived-insight { padding: 1rem; }
+    .derived-insight h3 { font-size: 1rem; }
+    .derived-insight p { font-size: 0.82rem; line-height: 1.6; }
+    .warning-banner { padding: 0.75rem 1rem; font-size: 0.82rem; }
+    .warning-banner .icon { font-size: 1.2rem; }
+    .warning-banner .text { font-size: 0.82rem; }
+    .toggle-group button { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+    .legend-note { font-size: 0.7rem; }
+    .methodology ul { padding-right: 1.25rem; }
+    footer { padding: 1.5rem 1rem; font-size: 0.7rem; }
+  }
+
+  @media (max-width: 420px) {
+    .hero h1 { font-size: 1.4rem; }
+    .hero .subtitle { font-size: 0.85rem; }
+    .key-stats { grid-template-columns: repeat(2, 1fr); gap: 0.4rem; }
+    .stat-card .number { font-size: 1.2rem; }
+    .stat-card .label { font-size: 0.65rem; }
+    nav button { padding: 0.6rem 0.5rem; font-size: 0.75rem; }
+    .chart-container { max-height: 250px; }
   }
 
   .insight {
@@ -592,10 +632,20 @@ function showSection(id) {
   event.target.classList.add('active');
 }
 
+// Mobile detection & responsive helpers
+const isMobile = window.innerWidth <= 768;
+const isSmallMobile = window.innerWidth <= 420;
+const mobileAspect = isSmallMobile ? 1.2 : (isMobile ? 1.5 : 2);
+const mobileLegendPos = isMobile ? 'bottom' : 'top';
+const mobileFontSize = isMobile ? 10 : 12;
+
 // Chart defaults
 Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+Chart.defaults.font.size = mobileFontSize;
 Chart.defaults.plugins.legend.rtl = true;
 Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.padding = isMobile ? 8 : 15;
+Chart.defaults.plugins.legend.labels.font = { size: isMobile ? 10 : 12 };
 
 // ==== OVERVIEW CHART ====
 const overviewData = {
@@ -627,14 +677,14 @@ function createOverviewChart(gender) {
     options: {
       responsive: true,
       maintainAspectRatio: true,
-      aspectRatio: 2,
+      aspectRatio: mobileAspect,
       plugins: {
-        legend: { position: 'top' },
+        legend: { position: mobileLegendPos },
         tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } }
       },
       scales: {
         y: { beginAtZero: true, ticks: { callback: v => v + '%' } },
-        x: { ticks: { maxRotation: 45, minRotation: 30 } }
+        x: { ticks: { maxRotation: isMobile ? 65 : 45, minRotation: 30, font: { size: isMobile ? 9 : 12 } } }
       }
     }
   });
@@ -660,7 +710,7 @@ new Chart(document.getElementById('armySizeChart'), {
   },
   options: {
     responsive: true,
-    aspectRatio: 2.2,
+    aspectRatio: isMobile ? 1.6 : 2.2,
     plugins: {
       legend: { position: 'top' },
       tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + ' אלף' } }
@@ -685,7 +735,7 @@ new Chart(document.getElementById('ratesMenChart'), {
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: {
       legend: { display: false },
       tooltip: { callbacks: { label: ctx => 'שיעור גיוס: ' + ctx.raw + '%' } }
@@ -710,7 +760,7 @@ new Chart(document.getElementById('ratesWomenChart'), {
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: {
       legend: { display: false },
       tooltip: { callbacks: { label: ctx => 'שיעור גיוס: ' + ctx.raw + '%' } }
@@ -728,16 +778,16 @@ new Chart(document.getElementById('historicalMenChart'), {
   data: {
     labels: decades,
     datasets: [
-      { label: 'חילונים', data: [88, 90, 92, 93, 92, 91, 90], borderColor: COLORS.secular, backgroundColor: COLORS.secular + '20', tension: 0.3, fill: false, pointRadius: 4 },
-      { label: 'מסורתיים', data: [85, 87, 89, 90, 89, 88, 87], borderColor: COLORS.traditional, tension: 0.3, fill: false, pointRadius: 4 },
-      { label: 'דתיים', data: [88, 90, 91, 92, 91, 90, 89], borderColor: COLORS.religious, tension: 0.3, fill: false, pointRadius: 4 },
-      { label: 'חרדים', data: [75, 65, 50, 30, 18, 12, 10], borderColor: COLORS.haredi, backgroundColor: COLORS.haredi + '15', tension: 0.3, fill: true, pointRadius: 5, borderWidth: 3 },
-      { label: 'דרוזים', data: [55, 60, 65, 70, 72, 73, 72], borderColor: COLORS.druze, tension: 0.3, fill: false, pointRadius: 4 }
+      { label: 'חילונים', data: [88, 90, 92, 93, 92, 91, 90], borderColor: COLORS.secular, backgroundColor: COLORS.secular + '20', tension: 0.3, fill: false, pointRadius: isMobile ? 2 : 4 },
+      { label: 'מסורתיים', data: [85, 87, 89, 90, 89, 88, 87], borderColor: COLORS.traditional, tension: 0.3, fill: false, pointRadius: isMobile ? 2 : 4 },
+      { label: 'דתיים', data: [88, 90, 91, 92, 91, 90, 89], borderColor: COLORS.religious, tension: 0.3, fill: false, pointRadius: isMobile ? 2 : 4 },
+      { label: 'חרדים', data: [75, 65, 50, 30, 18, 12, 10], borderColor: COLORS.haredi, backgroundColor: COLORS.haredi + '15', tension: 0.3, fill: true, pointRadius: isMobile ? 3 : 5, borderWidth: 3 },
+      { label: 'דרוזים', data: [55, 60, 65, 70, 72, 73, 72], borderColor: COLORS.druze, tension: 0.3, fill: false, pointRadius: isMobile ? 2 : 4 }
     ]
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: {
       legend: { position: 'top' },
       tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } }
@@ -754,15 +804,15 @@ new Chart(document.getElementById('historicalWomenChart'), {
   data: {
     labels: decades,
     datasets: [
-      { label: 'חילוניות', data: [60, 65, 72, 78, 82, 85, 87], borderColor: COLORS.secular, tension: 0.3, fill: false, pointRadius: 4 },
-      { label: 'מסורתיות', data: [55, 58, 64, 70, 75, 80, 83], borderColor: COLORS.traditional, tension: 0.3, fill: false, pointRadius: 4 },
-      { label: 'דתיות', data: [10, 15, 20, 20, 18, 18, 20], borderColor: COLORS.religious, tension: 0.3, fill: false, pointRadius: 4 },
-      { label: 'חרדיות', data: [2, 1, 1, 0.5, 0.5, 0.5, 0.5], borderColor: COLORS.haredi, tension: 0.3, fill: false, pointRadius: 4 }
+      { label: 'חילוניות', data: [60, 65, 72, 78, 82, 85, 87], borderColor: COLORS.secular, tension: 0.3, fill: false, pointRadius: isMobile ? 2 : 4 },
+      { label: 'מסורתיות', data: [55, 58, 64, 70, 75, 80, 83], borderColor: COLORS.traditional, tension: 0.3, fill: false, pointRadius: isMobile ? 2 : 4 },
+      { label: 'דתיות', data: [10, 15, 20, 20, 18, 18, 20], borderColor: COLORS.religious, tension: 0.3, fill: false, pointRadius: isMobile ? 2 : 4 },
+      { label: 'חרדיות', data: [2, 1, 1, 0.5, 0.5, 0.5, 0.5], borderColor: COLORS.haredi, tension: 0.3, fill: false, pointRadius: isMobile ? 2 : 4 }
     ]
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: {
       legend: { position: 'top' },
       tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } }
@@ -780,15 +830,15 @@ new Chart(document.getElementById('eduMenChart'), {
   data: {
     labels: eduYears,
     datasets: [
-      { label: 'ממלכתי', data: [92, 93, 93, 94, 93, 92, 91], borderColor: COLORS.state, tension: 0.3, pointRadius: 4, borderWidth: 2.5 },
-      { label: 'ממלכתי-דתי', data: [82, 84, 85, 86, 85, 84, 83], borderColor: COLORS.state_religious, tension: 0.3, pointRadius: 4, borderWidth: 2.5 },
-      { label: 'חרדי', data: [7, 8, 7, 6, 6, 5, 5], borderColor: COLORS.haredi_edu, tension: 0.3, pointRadius: 5, borderWidth: 3 },
-      { label: 'דרוזי', data: [70, 72, 73, 75, 76, 78, 79], borderColor: COLORS.druze_edu, tension: 0.3, pointRadius: 4, borderWidth: 2.5 }
+      { label: 'ממלכתי', data: [92, 93, 93, 94, 93, 92, 91], borderColor: COLORS.state, tension: 0.3, pointRadius: isMobile ? 2 : 4, borderWidth: 2.5 },
+      { label: 'ממלכתי-דתי', data: [82, 84, 85, 86, 85, 84, 83], borderColor: COLORS.state_religious, tension: 0.3, pointRadius: isMobile ? 2 : 4, borderWidth: 2.5 },
+      { label: 'חרדי', data: [7, 8, 7, 6, 6, 5, 5], borderColor: COLORS.haredi_edu, tension: 0.3, pointRadius: isMobile ? 3 : 5, borderWidth: 3 },
+      { label: 'דרוזי', data: [70, 72, 73, 75, 76, 78, 79], borderColor: COLORS.druze_edu, tension: 0.3, pointRadius: isMobile ? 2 : 4, borderWidth: 2.5 }
     ]
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } } },
     scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
   }
@@ -800,14 +850,14 @@ new Chart(document.getElementById('eduWomenChart'), {
   data: {
     labels: eduYears,
     datasets: [
-      { label: 'ממלכתי', data: [90, 91, 92, 93, 92, 91, 90], borderColor: COLORS.state, tension: 0.3, pointRadius: 4, borderWidth: 2.5 },
-      { label: 'ממלכתי-דתי', data: [22, 24, 25, 27, 26, 25, 24], borderColor: COLORS.state_religious, tension: 0.3, pointRadius: 4, borderWidth: 2.5 },
-      { label: 'חרדי', data: [1, 1, 0.5, 0.5, 0.5, 0.5, 0.5], borderColor: COLORS.haredi_edu, tension: 0.3, pointRadius: 5, borderWidth: 3 }
+      { label: 'ממלכתי', data: [90, 91, 92, 93, 92, 91, 90], borderColor: COLORS.state, tension: 0.3, pointRadius: isMobile ? 2 : 4, borderWidth: 2.5 },
+      { label: 'ממלכתי-דתי', data: [22, 24, 25, 27, 26, 25, 24], borderColor: COLORS.state_religious, tension: 0.3, pointRadius: isMobile ? 2 : 4, borderWidth: 2.5 },
+      { label: 'חרדי', data: [1, 1, 0.5, 0.5, 0.5, 0.5, 0.5], borderColor: COLORS.haredi_edu, tension: 0.3, pointRadius: isMobile ? 3 : 5, borderWidth: 3 }
     ]
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } } },
     scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
   }
@@ -827,7 +877,7 @@ new Chart(document.getElementById('nationalServiceChart'), {
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } },
     scales: { y: { beginAtZero: true, max: 80, ticks: { callback: v => v + '%' } } }
   }
@@ -847,7 +897,7 @@ new Chart(document.getElementById('geoMenChart'), {
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'שיעור גיוס: ' + ctx.raw + '%' } } },
     scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
   }
@@ -867,7 +917,7 @@ new Chart(document.getElementById('geoJewishChart'), {
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'שיעור גיוס: ' + ctx.raw + '%' } } },
     scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
   }
@@ -897,7 +947,7 @@ function createIncomeChart(gender) {
     },
     options: {
       responsive: true,
-      aspectRatio: 2,
+      aspectRatio: mobileAspect,
       plugins: {
         legend: { display: false },
         tooltip: { callbacks: { label: ctx => 'שיעור גיוס: ' + ctx.raw + '%' } }
@@ -934,9 +984,9 @@ new Chart(document.getElementById('nonServersChart'), {
   },
   options: {
     responsive: true,
-    aspectRatio: 1.8,
+    aspectRatio: isMobile ? 1.2 : 1.8,
     plugins: {
-      legend: { position: 'right', rtl: true },
+      legend: { position: isMobile ? 'bottom' : 'right', rtl: true, labels: { font: { size: isMobile ? 10 : 12 }, padding: isMobile ? 6 : 10 } },
       tooltip: { callbacks: { label: ctx => ctx.label + ': ~' + ctx.raw + ' אלף' } }
     }
   }
@@ -955,7 +1005,7 @@ new Chart(document.getElementById('religiousGapChart'), {
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: {
       legend: { position: 'top' },
       tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } }
@@ -981,7 +1031,7 @@ new Chart(document.getElementById('incomeDecompChart'), {
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: {
       legend: { position: 'top' },
       title: { display: true, text: 'הרכב מגזרי משוער לפי עשירון הכנסה (%)', font: { size: 13 } },
@@ -1006,20 +1056,20 @@ new Chart(document.getElementById('dualTrendChart'), {
         data: [55, 60, 65, 70, 72, 73, 78],
         borderColor: '#06b6d4',
         backgroundColor: 'rgba(6,182,212,0.1)',
-        tension: 0.3, fill: true, pointRadius: 5, borderWidth: 3
+        tension: 0.3, fill: true, pointRadius: isMobile ? 3 : 5, borderWidth: 3
       },
       {
         label: 'גברים חרדים',
         data: [75, 65, 50, 30, 18, 12, 10],
         borderColor: '#ef4444',
         backgroundColor: 'rgba(239,68,68,0.1)',
-        tension: 0.3, fill: true, pointRadius: 5, borderWidth: 3
+        tension: 0.3, fill: true, pointRadius: isMobile ? 3 : 5, borderWidth: 3
       }
     ]
   },
   options: {
     responsive: true,
-    aspectRatio: 2,
+    aspectRatio: mobileAspect,
     plugins: {
       legend: { position: 'top' },
       tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } },
