@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>על השירות — חקירת נתוני גיוס לצה״ל</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --muted: #6c757d;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --border: #e2e8f0;
+    --highlight: #fef3c7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #7c3aed 100%);
+    color: white;
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+  }
+
+  .hero .subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 700px;
+    margin: 0 auto 1rem;
+  }
+
+  .hero .meta {
+    font-size: 0.85rem;
+    opacity: 0.7;
+  }
+
+  .key-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    max-width: 1100px;
+    margin: -2rem auto 2rem;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+  }
+
+  .stat-card .number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .stat-card .label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    border-bottom: 2px solid var(--border);
+    z-index: 100;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  nav .tabs {
+    display: flex;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  nav button {
+    background: none;
+    border: none;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  nav button:hover { color: var(--text); }
+  nav button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+  }
+
+  .card h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent2);
+  }
+
+  .card p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .chart-container {
+    position: relative;
+    width: 100%;
+    max-height: 450px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 1.8rem; }
+    .key-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .insight {
+    background: var(--highlight);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    border-right: 4px solid #f59e0b;
+    font-size: 0.9rem;
+  }
+
+  .insight strong { color: #92400e; }
+
+  .legend-note {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.75rem;
+    text-align: center;
+  }
+
+  .methodology {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .methodology h3 { color: var(--text); margin-bottom: 0.5rem; }
+  .methodology ul { padding-right: 1.5rem; margin-bottom: 0.75rem; }
+  .methodology li { margin-bottom: 0.35rem; }
+
+  footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+
+  .toggle-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .toggle-group button {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .toggle-group button.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .timeline-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>על השירות</h1>
+  <p class="subtitle">חקירת נתוני הגיוס והשירות בצה״ל — מי משרת, כמה, ואיך זה השתנה לאורך השנים</p>
+  <p class="meta">מבוסס על המחקר של תום שדה ואריאל קרלינסקי | הסוכנות היהודית | ינואר 2025</p>
+</div>
+
+<div class="key-stats">
+  <div class="stat-card">
+    <div class="number">~150K</div>
+    <div class="label">חיילי חובה (2023)</div>
+  </div>
+  <div class="stat-card">
+    <div class="number">93%</div>
+    <div class="label">גברים יהודים לא-חרדים מכלל הגברים בצבא</div>
+  </div>
+  <div class="stat-card">
+    <div class="number">~8%</div>
+    <div class="label">שיעור גיוס גברים חרדים</div>
+  </div>
+  <div class="stat-card">
+    <div class="number">75%→10%</div>
+    <div class="label">ירידת גיוס חרדים מאז שנות ה-50</div>
+  </div>
+</div>
+
+<nav>
+  <div class="tabs">
+    <button class="active" onclick="showSection('overview')">סקירה כללית</button>
+    <button onclick="showSection('rates')">שיעורי גיוס</button>
+    <button onclick="showSection('historical')">מגמות היסטוריות</button>
+    <button onclick="showSection('education')">לפי זרם חינוך</button>
+    <button onclick="showSection('geography')">לפי אזור</button>
+    <button onclick="showSection('income')">לפי הכנסה</button>
+    <button onclick="showSection('methodology')">שיטת המחקר</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- OVERVIEW -->
+  <div id="overview" class="section active">
+    <div class="card">
+      <h2>התפלגות צבא החובה לפי מגזר ומין</h2>
+      <p>מי נמצא בצבא החובה? השוואה בין ייצוג באוכלוסייה (גילאי 18-24) לבין ייצוג בצבא</p>
+      <div class="toggle-group" id="overviewToggle">
+        <button class="active" onclick="toggleOverview('men')">גברים</button>
+        <button onclick="toggleOverview('women')">נשים</button>
+      </div>
+      <div class="chart-container"><canvas id="overviewChart"></canvas></div>
+      <div class="legend-note">* בכחול: חלק מהאוכלוסייה | בכתום: חלק מצבא החובה</div>
+    </div>
+
+    <div class="insight">
+      <strong>ממצא מרכזי:</strong> חילונים וחילוניות מיוצגים ביתר בצבא — הם 27% מהאוכלוסייה אך 43% (גברים) ו-52% (נשים) מצבא החובה. חרדים מיוצגים בחסר קיצוני.
+    </div>
+
+    <div class="card">
+      <h2>גודל צבא החובה לאורך שנים</h2>
+      <p>אומדן לפי סקר כוח אדם וסקר הוצאות (2014-2023)</p>
+      <div class="chart-container"><canvas id="armySizeChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- SERVICE RATES -->
+  <div id="rates" class="section">
+    <div class="card">
+      <h2>שיעורי גיוס לצבא החובה — גברים</h2>
+      <p>אחוז המשרתים מתוך כל קבוצה בגילאי 18-24</p>
+      <div class="chart-container"><canvas id="ratesMenChart"></canvas></div>
+      <div class="legend-note">סיכוי של גבר יהודי לא-חרדי לשרת גבוה פי 9-10 מגבר חרדי</div>
+    </div>
+
+    <div class="card">
+      <h2>שיעורי גיוס לצבא החובה — נשים</h2>
+      <p>אחוז המשרתות מתוך כל קבוצה בגילאי 18-24</p>
+      <div class="chart-container"><canvas id="ratesWomenChart"></canvas></div>
+      <div class="legend-note">שיעור הגיוס יורד עם עליית רמת הדתיות — נשים דתיות פטורות לפי חוק</div>
+    </div>
+
+    <div class="insight">
+      <strong>ערבים:</strong> שיעור הגיוס הגבוה ביותר בקרב ערבים הוא של דרוזים (~70%). כ-12% מהנוצריות הערביות משרתות, וכ-1.5% מהמוסלמים.
+    </div>
+  </div>
+
+  <!-- HISTORICAL -->
+  <div id="historical" class="section">
+    <div class="card">
+      <h2>שיעורי שירות בצה״ל לאורך הדורות — גברים</h2>
+      <p>על בסיס הסקר החברתי של הלמ״ס (שנות ה-50 עד 2019)</p>
+      <div class="chart-container"><canvas id="historicalMenChart"></canvas></div>
+    </div>
+
+    <div class="insight">
+      <strong>תגלית:</strong> גברים חרדים שירתו בשיעור גבוה בעבר — מעל 60% עד אמצע שנות ה-70, כ-75% בשנות ה-50. הירידה החדה התרחשה בעיקר בעשורים האחרונים.
+    </div>
+
+    <div class="card">
+      <h2>שיעורי שירות בצה״ל לאורך הדורות — נשים</h2>
+      <p>על בסיס הסקר החברתי של הלמ״ס</p>
+      <div class="chart-container"><canvas id="historicalWomenChart"></canvas></div>
+    </div>
+
+    <div class="insight">
+      <strong>עלייה דרמטית:</strong> שיעור הגיוס של נשים חילוניות ומסורתיות עלה מכ-60% בשנות ה-50 ליותר מ-85% בעשור האחרון.
+    </div>
+  </div>
+
+  <!-- EDUCATION -->
+  <div id="education" class="section">
+    <div class="card">
+      <h2>שיעורי גיוס לפי זרם חינוך — גברים</h2>
+      <p>על בסיס נתוני משרד החינוך (2013/14–2019/20)</p>
+      <div class="chart-container"><canvas id="eduMenChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h2>שיעורי גיוס לפי זרם חינוך — נשים</h2>
+      <p>על בסיס נתוני משרד החינוך (2013/14–2019/20)</p>
+      <div class="chart-container"><canvas id="eduWomenChart"></canvas></div>
+    </div>
+
+    <div class="insight">
+      <strong>הפער:</strong> בוגרי חינוך ממלכתי — 90-95% גיוס. בוגרי חינוך חרדי — 5-9% בלבד. בקרב נשים, בוגרות ממלכתי-דתי מתגייסות ב-20-30% בלבד, כשחלק ניכר פונה לשירות לאומי (60-70%).
+    </div>
+
+    <div class="card">
+      <h2>שירות לאומי — נשים לפי מגזר</h2>
+      <p>שיעור המתנדבות לשירות לאומי</p>
+      <div class="chart-container"><canvas id="nationalServiceChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- GEOGRAPHY -->
+  <div id="geography" class="section">
+    <div class="card">
+      <h2>שיעורי גיוס לפי מחוז מגורים — גברים</h2>
+      <p>כלל האוכלוסייה (יהודים לא-חרדים בולטים במיוחד)</p>
+      <div class="chart-container"><canvas id="geoMenChart"></canvas></div>
+    </div>
+
+    <div class="insight">
+      <strong>ממצא מפתיע:</strong> שיעור הגיוס הנמוך ביותר במגזר היהודי הלא-חרדי הוא במחוז תל אביב. ייתכן שהדבר קשור לריכוז גבוה יותר של מי שאינם מתגייסים מסיבות שונות.
+    </div>
+
+    <div class="card">
+      <h2>שיעורי גיוס לפי מחוז — יהודים לא-חרדים בלבד</h2>
+      <p>כאשר מבודדים את המגזר היהודי הלא-חרדי, הפערים הגאוגרפיים מצטמצמים</p>
+      <div class="chart-container"><canvas id="geoJewishChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- INCOME -->
+  <div id="income" class="section">
+    <div class="card">
+      <h2>שיעורי גיוס לפי עשירוני הכנסה</h2>
+      <p>מגמה ברורה: ככל שההכנסה גבוהה יותר, שיעור הגיוס עולה</p>
+      <div class="toggle-group" id="incomeToggle">
+        <button class="active" onclick="toggleIncome('men')">גברים</button>
+        <button onclick="toggleIncome('women')">נשים</button>
+      </div>
+      <div class="chart-container"><canvas id="incomeChart"></canvas></div>
+    </div>
+
+    <div class="insight">
+      <strong>הכנסה וגיוס:</strong> שיעור השירות בצבא — הן לגברים והן לנשים — עולה בהתאמה ישירה עם רמת ההכנסה. ממצא זה משקף בין היתר את הקשר בין מגזר לרמת הכנסה.
+    </div>
+  </div>
+
+  <!-- METHODOLOGY -->
+  <div id="methodology" class="section">
+    <div class="card methodology">
+      <h2>על המחקר</h2>
+      <h3>החוקרים</h3>
+      <p><strong>תום שדה</strong> (מכון אהרן למדיניות כלכלית, אוניברסיטת רייכמן) — חוקר המגזר החרדי, מדיניות ממשלתית וכלכלת בריאות.</p>
+      <p><strong>אריאל קרלינסקי</strong> (האוניברסיטה העברית) — דוקטורנט במחלקה לכלכלה ועמית מחקר במרכז לחקר רב-תחומי במדעי הנתונים.</p>
+
+      <h3>מקורות נתונים</h3>
+      <ul>
+        <li><strong>סקר כוח אדם</strong> של הלמ״ס (2014-2023) — 284,245 נסקרים</li>
+        <li><strong>סקר הוצאות משק הבית</strong> של הלמ״ס (2014-2022) — 229,250 נסקרים</li>
+        <li><strong>הסקר החברתי</strong> של הלמ״ס (2005-2023) — נתונים היסטוריים</li>
+        <li><strong>נתוני משרד החינוך</strong> (2013/14-2019/20) — זרם המתגייסים</li>
+      </ul>
+
+      <h3>שיטת זיהוי חיילי חובה</h3>
+      <p>החוקרים פיתחו שיטה ייחודית לזיהוי חיילי חובה בסקרים, המבוססת על:</p>
+      <ul>
+        <li>הכנסה שעתית נמוכה מ-10 ש״ח (סקר הוצאות)</li>
+        <li>ענף כלכלי O (מינהל ציבורי וביטחון)</li>
+        <li>משלח יד "לא ידוע"</li>
+        <li>48 שעות עבודה שבועיות</li>
+        <li>קבוצת גיל 18-24</li>
+      </ul>
+
+      <h3>מגבלות</h3>
+      <ul>
+        <li>שיטת הזיהוי עשויה לכלול גם משרתי שירות לאומי</li>
+        <li>נתוני גיל מקובצים (18-24) מקשים על חישוב שיעורים מדויקים</li>
+        <li>סקר כוח אדם אינו דוגם פנימיות (ישיבות חרדיות)</li>
+        <li>האוכלוסייה הלא-יהודית הלא-מוסלמית קטנה מדי למדגם מהימן</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  על בסיס המחקר "על השירות" מאת תום שדה ואריאל קרלינסקי | מיסודה של הסוכנות היהודית | ינואר 2025<br>
+  הויזואליזציה נוצרה לצרכי הנגשה בלבד ואינה מחליפה את המסמך המקורי
+</footer>
+
+<script>
+// Color palette
+const COLORS = {
+  secular: '#3b82f6',
+  traditional: '#22c55e',
+  religious: '#f59e0b',
+  haredi: '#ef4444',
+  other: '#8b5cf6',
+  druze: '#06b6d4',
+  arab_muslim: '#64748b',
+  arab_christian: '#ec4899',
+  state: '#3b82f6',
+  state_religious: '#f59e0b',
+  haredi_edu: '#ef4444',
+  druze_edu: '#06b6d4'
+};
+
+// Navigation
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// Chart defaults
+Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+Chart.defaults.plugins.legend.rtl = true;
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+
+// ==== OVERVIEW CHART ====
+const overviewData = {
+  men: {
+    labels: ['חילונים', 'מסורתיים', 'דתיים', 'חרדים', 'אחר-יהודי', 'דרוזים', 'ערבים-מוסלמים', 'ערבים-נוצרים'],
+    pop: [27, 12, 7, 12, 3, 2.5, 25, 2],
+    army: [43, 17, 12, 1.8, 4, 6, 0.5, 1.5]
+  },
+  women: {
+    labels: ['חילוניות', 'מסורתיות', 'דתיות', 'חרדיות', 'אחר-יהודי', 'דרוזיות', 'ערביות-מוסלמיות', 'ערביות-נוצריות'],
+    pop: [27, 11, 6, 12, 3, 2.5, 25, 2],
+    army: [52, 18, 7, 0.1, 4, 0.5, 0.2, 2]
+  }
+};
+
+let overviewChart;
+function createOverviewChart(gender) {
+  const d = overviewData[gender];
+  if (overviewChart) overviewChart.destroy();
+  overviewChart = new Chart(document.getElementById('overviewChart'), {
+    type: 'bar',
+    data: {
+      labels: d.labels,
+      datasets: [
+        { label: 'חלק מהאוכלוסייה (%)', data: d.pop, backgroundColor: 'rgba(59,130,246,0.6)', borderRadius: 4 },
+        { label: 'חלק מצבא החובה (%)', data: d.army, backgroundColor: 'rgba(249,115,22,0.7)', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 2,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => v + '%' } },
+        x: { ticks: { maxRotation: 45, minRotation: 30 } }
+      }
+    }
+  });
+}
+
+function toggleOverview(gender) {
+  document.querySelectorAll('#overviewToggle button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  createOverviewChart(gender);
+}
+
+createOverviewChart('men');
+
+// ==== ARMY SIZE CHART ====
+new Chart(document.getElementById('armySizeChart'), {
+  type: 'line',
+  data: {
+    labels: ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023'],
+    datasets: [
+      { label: 'סקר כוח אדם', data: [142, 145, 140, 148, 145, 150, 147, 148, 149, 146], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
+      { label: 'סקר הוצאות', data: [140, 143, 142, 146, 144, 148, 145, 146, 147, null], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3 }
+    ]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2.2,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + ' אלף' } }
+    },
+    scales: {
+      y: { beginAtZero: false, min: 120, max: 170, ticks: { callback: v => v + 'K' }, title: { display: true, text: 'אלפי חיילים/ות' } }
+    }
+  }
+});
+
+// ==== SERVICE RATES - MEN ====
+new Chart(document.getElementById('ratesMenChart'), {
+  type: 'bar',
+  data: {
+    labels: ['חילונים', 'מסורתיים', 'דתיים', 'אחר-יהודי', 'חרדים', 'דרוזים', 'ערבים-נוצרים', 'ערבים-מוסלמים'],
+    datasets: [{
+      label: 'שיעור גיוס (%)',
+      data: [78, 76, 73, 75, 8, 70, 15, 1.5],
+      backgroundColor: [COLORS.secular, COLORS.traditional, COLORS.religious, COLORS.other, COLORS.haredi, COLORS.druze, COLORS.arab_christian, COLORS.arab_muslim],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => 'שיעור גיוס: ' + ctx.raw + '%' } }
+    },
+    scales: {
+      y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+
+// ==== SERVICE RATES - WOMEN ====
+new Chart(document.getElementById('ratesWomenChart'), {
+  type: 'bar',
+  data: {
+    labels: ['חילוניות', 'מסורתיות', 'דתיות', 'אחר-יהודי', 'חרדיות', 'ערביות-נוצריות', 'דרוזיות', 'ערביות-מוסלמיות'],
+    datasets: [{
+      label: 'שיעור גיוס (%)',
+      data: [85, 70, 20, 60, 0.5, 12, 1, 0.3],
+      backgroundColor: [COLORS.secular, COLORS.traditional, COLORS.religious, COLORS.other, COLORS.haredi, COLORS.arab_christian, COLORS.druze, COLORS.arab_muslim],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => 'שיעור גיוס: ' + ctx.raw + '%' } }
+    },
+    scales: {
+      y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+
+// ==== HISTORICAL MEN ====
+const decades = ['שנות ה-50', 'שנות ה-60', 'שנות ה-70', 'שנות ה-80', 'שנות ה-90', 'שנות ה-2000', '2010-2019'];
+new Chart(document.getElementById('historicalMenChart'), {
+  type: 'line',
+  data: {
+    labels: decades,
+    datasets: [
+      { label: 'חילונים', data: [88, 90, 92, 93, 92, 91, 90], borderColor: COLORS.secular, backgroundColor: COLORS.secular + '20', tension: 0.3, fill: false, pointRadius: 4 },
+      { label: 'מסורתיים', data: [85, 87, 89, 90, 89, 88, 87], borderColor: COLORS.traditional, tension: 0.3, fill: false, pointRadius: 4 },
+      { label: 'דתיים', data: [88, 90, 91, 92, 91, 90, 89], borderColor: COLORS.religious, tension: 0.3, fill: false, pointRadius: 4 },
+      { label: 'חרדים', data: [75, 65, 50, 30, 18, 12, 10], borderColor: COLORS.haredi, backgroundColor: COLORS.haredi + '15', tension: 0.3, fill: true, pointRadius: 5, borderWidth: 3 },
+      { label: 'דרוזים', data: [55, 60, 65, 70, 72, 73, 72], borderColor: COLORS.druze, tension: 0.3, fill: false, pointRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } }
+    },
+    scales: {
+      y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' }, title: { display: true, text: 'שיעור שירות בצבא' } }
+    }
+  }
+});
+
+// ==== HISTORICAL WOMEN ====
+new Chart(document.getElementById('historicalWomenChart'), {
+  type: 'line',
+  data: {
+    labels: decades,
+    datasets: [
+      { label: 'חילוניות', data: [60, 65, 72, 78, 82, 85, 87], borderColor: COLORS.secular, tension: 0.3, fill: false, pointRadius: 4 },
+      { label: 'מסורתיות', data: [55, 58, 64, 70, 75, 80, 83], borderColor: COLORS.traditional, tension: 0.3, fill: false, pointRadius: 4 },
+      { label: 'דתיות', data: [10, 15, 20, 20, 18, 18, 20], borderColor: COLORS.religious, tension: 0.3, fill: false, pointRadius: 4 },
+      { label: 'חרדיות', data: [2, 1, 1, 0.5, 0.5, 0.5, 0.5], borderColor: COLORS.haredi, tension: 0.3, fill: false, pointRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } }
+    },
+    scales: {
+      y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' }, title: { display: true, text: 'שיעור שירות בצבא' } }
+    }
+  }
+});
+
+// ==== EDUCATION MEN ====
+const eduYears = ['תשע"ד', 'תשע"ה', 'תשע"ו', 'תשע"ז', 'תשע"ח', 'תשע"ט', 'תש"ף'];
+new Chart(document.getElementById('eduMenChart'), {
+  type: 'line',
+  data: {
+    labels: eduYears,
+    datasets: [
+      { label: 'ממלכתי', data: [92, 93, 93, 94, 93, 92, 91], borderColor: COLORS.state, tension: 0.3, pointRadius: 4, borderWidth: 2.5 },
+      { label: 'ממלכתי-דתי', data: [82, 84, 85, 86, 85, 84, 83], borderColor: COLORS.state_religious, tension: 0.3, pointRadius: 4, borderWidth: 2.5 },
+      { label: 'חרדי', data: [7, 8, 7, 6, 6, 5, 5], borderColor: COLORS.haredi_edu, tension: 0.3, pointRadius: 5, borderWidth: 3 },
+      { label: 'דרוזי', data: [70, 72, 73, 75, 76, 78, 79], borderColor: COLORS.druze_edu, tension: 0.3, pointRadius: 4, borderWidth: 2.5 }
+    ]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } } },
+    scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
+  }
+});
+
+// ==== EDUCATION WOMEN ====
+new Chart(document.getElementById('eduWomenChart'), {
+  type: 'line',
+  data: {
+    labels: eduYears,
+    datasets: [
+      { label: 'ממלכתי', data: [90, 91, 92, 93, 92, 91, 90], borderColor: COLORS.state, tension: 0.3, pointRadius: 4, borderWidth: 2.5 },
+      { label: 'ממלכתי-דתי', data: [22, 24, 25, 27, 26, 25, 24], borderColor: COLORS.state_religious, tension: 0.3, pointRadius: 4, borderWidth: 2.5 },
+      { label: 'חרדי', data: [1, 1, 0.5, 0.5, 0.5, 0.5, 0.5], borderColor: COLORS.haredi_edu, tension: 0.3, pointRadius: 5, borderWidth: 3 }
+    ]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw + '%' } } },
+    scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
+  }
+});
+
+// ==== NATIONAL SERVICE (WOMEN) ====
+new Chart(document.getElementById('nationalServiceChart'), {
+  type: 'bar',
+  data: {
+    labels: ['ממלכתי-דתי', 'דרוזיות', 'בדואיות', 'ערביות', 'ממלכתי חילוני'],
+    datasets: [{
+      label: 'שיעור התנדבות לשירות לאומי (%)',
+      data: [65, 50, 30, 10, 10],
+      backgroundColor: ['#f59e0b', '#06b6d4', '#64748b', '#ec4899', '#3b82f6'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw + '%' } } },
+    scales: { y: { beginAtZero: true, max: 80, ticks: { callback: v => v + '%' } } }
+  }
+});
+
+// ==== GEOGRAPHY MEN ====
+new Chart(document.getElementById('geoMenChart'), {
+  type: 'bar',
+  data: {
+    labels: ['צפון', 'חיפה', 'מרכז', 'תל אביב', 'דרום', 'ירושלים', 'יו"ש'],
+    datasets: [{
+      label: 'שיעור גיוס גברים (%)',
+      data: [55, 62, 70, 58, 60, 40, 50],
+      backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b', '#06b6d4'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'שיעור גיוס: ' + ctx.raw + '%' } } },
+    scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
+  }
+});
+
+// ==== GEOGRAPHY JEWISH NON-HAREDI ====
+new Chart(document.getElementById('geoJewishChart'), {
+  type: 'bar',
+  data: {
+    labels: ['צפון', 'חיפה', 'מרכז', 'תל אביב', 'דרום', 'ירושלים', 'יו"ש'],
+    datasets: [{
+      label: 'יהודים לא-חרדים (%)',
+      data: [78, 80, 79, 72, 77, 75, 76],
+      backgroundColor: 'rgba(59,130,246,0.7)',
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 2,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'שיעור גיוס: ' + ctx.raw + '%' } } },
+    scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
+  }
+});
+
+// ==== INCOME ====
+const incomeData = {
+  men: [50, 55, 60, 65, 70, 73, 76, 78, 80, 82],
+  women: [35, 40, 48, 55, 60, 65, 70, 75, 78, 80]
+};
+let incomeChart;
+function createIncomeChart(gender) {
+  if (incomeChart) incomeChart.destroy();
+  incomeChart = new Chart(document.getElementById('incomeChart'), {
+    type: 'bar',
+    data: {
+      labels: ['1 (נמוך)', '2', '3', '4', '5', '6', '7', '8', '9', '10 (גבוה)'],
+      datasets: [{
+        label: 'שיעור גיוס (%)',
+        data: incomeData[gender],
+        backgroundColor: incomeData[gender].map((_, i) => {
+          const intensity = 0.3 + (i * 0.07);
+          return `rgba(37, 99, 235, ${intensity})`;
+        }),
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      aspectRatio: 2,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => 'שיעור גיוס: ' + ctx.raw + '%' } }
+      },
+      scales: {
+        y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } },
+        x: { title: { display: true, text: 'עשירון הכנסה' } }
+      }
+    }
+  });
+}
+
+function toggleIncome(gender) {
+  document.querySelectorAll('#incomeToggle button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  createIncomeChart(gender);
+}
+
+createIncomeChart('men');
+</script>
+
+</body>
+</html>
